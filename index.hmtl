@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Pergunta Importante</title>
+  <!-- Importando uma fonte diferenciada do Google Fonts -->
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Courgette&display=swap');
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: #f7f7f7;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      font-family: Arial, sans-serif;
+    }
+
+    /* Título em fonte diferenciada */
+    h1 {
+      font-family: 'Courgette', cursive;
+      font-size: 2.2em;
+      text-align: center;
+      color: #e91e63;
+      margin: 20px 0;
+    }
+
+    /* Contador de 15 segundos */
+    #countdownContainer {
+      margin-bottom: 20px;
+      font-size: 1.2em;
+      text-align: center;
+    }
+
+    /* Botões */
+    .buttons {
+      display: flex;
+      gap: 20px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 1em;
+      cursor: pointer;
+      border: none;
+      border-radius: 5px;
+    }
+
+    #btnNao {
+      background: #f44336;
+      color: #fff;
+    }
+
+    #btnSim {
+      position: absolute; /* Permitirá mover o botão pela tela */
+      background: #4caf50;
+      color: #fff;
+    }
+
+    /* Popups */
+    #overlay, #overlayTempo {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0,0,0,0.7);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .popup {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+      max-width: 300px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    }
+  </style>
+</head>
+<body>
+  <!-- Título em fonte diferenciada -->
+  <h1>Patrizia,Você vai me aturar por toda a vida ?</h1>
+
+  <!-- Contador regressivo de 15 segundos -->
+  <div id="countdownContainer">
+    <div>Tempo máximo de resposta</div>
+    <span id="countdown">15</span> segundos
+  </div>
+
+  <!-- Seção de botões -->
+  <div class="buttons">
+    <button id="btnNao">Não</button>
+    <!-- O botão Sim está posicionado de forma absoluta para poder 'fugir' -->
+    <button id="btnSim">Sim</button>
+  </div>
+
+  <!-- Popup para o clique em "Não" -->
+  <div id="overlay">
+    <div class="popup">
+      <p>Quer dizer que você não me ama????</p>
+    </div>
+  </div>
+
+  <!-- Popup quando o tempo acaba -->
+  <div id="overlayTempo">
+    <div class="popup">
+      <p id="fimTempoMsg"></p>
+      <p id="segundosRestantes">Redirecionando em 5 segundos...</p>
+    </div>
+  </div>
+
+  <script>
+    // ---------------------
+    // VARIÁVEIS GLOBAIS
+    // ---------------------
+    let tempoRestante = 15;
+    let intervalo;
+    let intervaloRedirect;
+    let posXMax, posYMax; // para manter limites do botão 'Sim'
+
+    // Obtém referências dos elementos
+    const countdownEl = document.getElementById('countdown');
+    const btnNao = document.getElementById('btnNao');
+    const btnSim = document.getElementById('btnSim');
+    const overlay = document.getElementById('overlay');
+    const overlayTempo = document.getElementById('overlayTempo');
+    const fimTempoMsg = document.getElementById('fimTempoMsg');
+    const segundosRestantes = document.getElementById('segundosRestantes');
+
+    // ---------------------
+    // FUNÇÕES PRINCIPAIS
+    // ---------------------
+
+    // Função para iniciar o contador de 15 segundos
+    function iniciarContagem() {
+      countdownEl.textContent = tempoRestante;
+      intervalo = setInterval(() => {
+        tempoRestante--;
+        countdownEl.textContent = tempoRestante;
+        if (tempoRestante <= 0) {
+          clearInterval(intervalo);
+          // Exibe popup de tempo esgotado
+          mostrarTempoEsgotado();
+        }
+      }, 1000);
+    }
+
+    // Mostra popup de tempo esgotado com contagem de 5 segundos
+    function mostrarTempoEsgotado() {
+      fimTempoMsg.innerText = "Seu tempo de resposta acabou... Você será redirecionado em 5 segundos para reavaliar sua decisão!";
+      overlayTempo.style.display = 'flex';
+      let segundos = 5;
+      segundosRestantes.textContent = `Redirecionando em ${segundos} segundos...`;
+
+      intervaloRedirect = setInterval(() => {
+        segundos--;
+        segundosRestantes.textContent = `Redirecionando em ${segundos} segundos...`;
+        if (segundos <= 0) {
+          clearInterval(intervaloRedirect);
+          // Recarrega a página
+          location.reload();
+        }
+      }, 1000);
+    }
+
+    // Exibe popup do botão "Não"
+    function mostrarOverlayNao() {
+      overlay.style.display = 'flex';
+      setTimeout(() => {
+        overlay.style.display = 'none';
+      }, 2000); // Fecha o overlay após 2 segundos (opcional)
+    }
+
+    // Faz o botão "Sim" se mover para uma posição aleatória dentro da janela
+    function moverBotaoSim() {
+      // Calcula a região útil para o botão
+      //  - Considerar tamanho do botão para que não saia da tela
+      const btnWidth = btnSim.offsetWidth;
+      const btnHeight = btnSim.offsetHeight;
+      posXMax = window.innerWidth - btnWidth - 10;  // 10 px de margem de segurança
+      posYMax = window.innerHeight - btnHeight - 10;
+
+      // Valores aleatórios de x e y
+      const randomX = Math.floor(Math.random() * posXMax);
+      const randomY = Math.floor(Math.random() * posYMax);
+
+      btnSim.style.left = randomX + 'px';
+      btnSim.style.top = randomY + 'px';
+    }
+
+    // ---------------------
+    // EVENTOS
+    // ---------------------
+    btnNao.addEventListener('click', () => {
+      mostrarOverlayNao();
+    });
+
+    // Assim que o mouse se aproxima ou tenta clicar, o botão "Sim" se move
+    btnSim.addEventListener('mouseover', moverBotaoSim);
+    btnSim.addEventListener('focus', moverBotaoSim);
+    btnSim.addEventListener('click', moverBotaoSim); 
+    // Mesmo no clique, antes de dar tempo de acionar, ele já se move
+
+    // Inicia a contagem quando a página carrega
+    window.onload = () => {
+      iniciarContagem();
+      // Posiciona o botão "Sim" inicialmente
+      moverBotaoSim();
+    };
+  </script>
+</body>
+</html>
